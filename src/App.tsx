@@ -62,11 +62,24 @@ export default function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Set a safety timeout to prevent permanent blank screen if Firebase hangs
+    const timeout = setTimeout(() => {
+      if (loading) {
+        console.warn('Firebase onAuthStateChanged timed out, continuing...');
+        setLoading(false);
+      }
+    }, 5000);
+
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      clearTimeout(timeout);
       setUser(currentUser);
       setLoading(false);
     });
-    return () => unsubscribe();
+
+    return () => {
+      clearTimeout(timeout);
+      unsubscribe();
+    };
   }, []);
 
   return (

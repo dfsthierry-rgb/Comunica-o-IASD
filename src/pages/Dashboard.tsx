@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { store } from '../lib/store';
 import { Presentation } from '../types';
 import { PlusCircle, FileText, Calendar, ArrowRight, Trash2, Info } from 'lucide-react';
+import { generateUUID } from '../lib/utils';
 
 import { auth } from '../lib/firebase';
 
@@ -28,7 +29,7 @@ export function Dashboard() {
     try {
       setError(null);
       const newPresentation: Presentation = {
-        id: crypto.randomUUID(),
+        id: generateUUID(),
         title: `Apresentação - ${new Date().toLocaleDateString('pt-BR')}`,
         createdAt: new Date().toISOString(),
         status: 'draft',
