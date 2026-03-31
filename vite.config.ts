@@ -11,12 +11,23 @@ export default defineConfig(({mode}) => {
       react(),
       tailwindcss(),
       {
-        name: 'fix-mime-types',
+        name: 'fix-mime-types-and-paths',
         configureServer(server) {
           server.middlewares.use((req, res, next) => {
-            const url = req.url?.split('?')[0] || '';
-            if (url.endsWith('.ts') || url.endsWith('.tsx') || url.endsWith('.js') || url.endsWith('.jsx')) {
-              res.setHeader('Content-Type', 'application/javascript');
+            if (req.url) {
+              // 1. Force correct MIME type for scripts
+              const url = req.url.split('?')[0];
+              if (url.endsWith('.ts') || url.endsWith('.tsx') || url.endsWith('.js') || url.endsWith('.jsx')) {
+                res.setHeader('Content-Type', 'application/javascript');
+              }
+
+              // 2. Handle proxy subpaths by stripping potential prefixes
+              if (req.url.includes('/src/') || req.url.includes('/node_modules/') || req.url.startsWith('/@')) {
+                const matches = req.url.match(/(\/src\/|\/node_modules\/|(\/@.*))/);
+                if (matches && matches[0]) {
+                  req.url = req.url.substring(req.url.indexOf(matches[0]));
+                }
+              }
             }
             next();
           });
