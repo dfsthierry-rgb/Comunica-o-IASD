@@ -6,19 +6,15 @@ import {defineConfig, loadEnv} from 'vite';
 export default defineConfig(({mode}) => {
   const env = loadEnv(mode, '.', '');
   return {
-    base: './',
     plugins: [
       react(),
       tailwindcss(),
       {
-        name: 'handle-proxy-subpath',
+        name: 'fix-mime-types',
         configureServer(server) {
           server.middlewares.use((req, res, next) => {
-            if (req.url && (req.url.includes('/src/') || req.url.includes('/node_modules/') || req.url.startsWith('/@'))) {
-              const matches = req.url.match(/(\/src\/|\/node_modules\/|(\/@.*))/);
-              if (matches && matches[0]) {
-                req.url = req.url.substring(req.url.indexOf(matches[0]));
-              }
+            if (req.url && (req.url.endsWith('.ts') || req.url.endsWith('.tsx'))) {
+              res.setHeader('Content-Type', 'text/javascript');
             }
             next();
           });
