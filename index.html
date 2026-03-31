@@ -1,12 +1,55 @@
 <!doctype html>
-<html lang="en">
+<html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Google AI Studio App</title>
+    <title>Gerador de Anúncios IASD</title>
+    <style>
+      #load-error {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: white;
+        padding: 2rem;
+        font-family: sans-serif;
+        text-align: center;
+        z-index: 9999;
+      }
+      .error-btn {
+        background: #2563eb;
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        margin-top: 1rem;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
+
+    <div id="load-error">
+      <h2>Opa! A página demorou muito para carregar.</h2>
+      <p>Isso pode ser um problema temporário de conexão ou rede.</p>
+      <button class="error-btn" onclick="window.location.reload()">Tentar Novamente</button>
+    </div>
+
+    <script>
+      // Diagnostic check to catch silent loading failures
+      window.addEventListener('load', function() {
+        setTimeout(function() {
+          var root = document.getElementById('root');
+          if (root && root.innerHTML === "") {
+            document.getElementById('load-error').style.display = 'block';
+          }
+        }, 5000);
+      });
+      window.addEventListener('error', function(e) {
+        console.error('Erro de carregamento:', e.message);
+      }, true);
+    </script>
+
     <script type="module" src="./src/main.tsx"></script>
   </body>
 </html>
