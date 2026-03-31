@@ -6,7 +6,25 @@ import {defineConfig, loadEnv} from 'vite';
 export default defineConfig(({mode}) => {
   const env = loadEnv(mode, '.', '');
   return {
-    plugins: [react(), tailwindcss()],
+    base: './',
+    plugins: [
+      react(),
+      tailwindcss(),
+      {
+        name: 'handle-proxy-subpath',
+        configureServer(server) {
+          server.middlewares.use((req, res, next) => {
+            if (req.url && (req.url.includes('/src/') || req.url.includes('/node_modules/') || req.url.startsWith('/@'))) {
+              const matches = req.url.match(/(\/src\/|\/node_modules\/|(\/@.*))/);
+              if (matches && matches[0]) {
+                req.url = req.url.substring(req.url.indexOf(matches[0]));
+              }
+            }
+            next();
+          });
+        },
+      },
+    ],
     define: {
       'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
     },
