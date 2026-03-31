@@ -6,7 +6,6 @@ import { Editor } from './pages/Editor';
 import { SharedView } from './pages/SharedView';
 import { auth, signInWithGoogle, logOut } from './lib/firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
-import { ErrorBoundary } from './components/ErrorBoundary';
 
 function AppContent({ user }: { user: User | null }) {
   const location = useLocation();
@@ -84,11 +83,9 @@ export default function App() {
   }, []);
 
   return (
-    <ErrorBoundary>
-      <HashRouter>
-        <AppWrapper user={user} loading={loading} />
-      </HashRouter>
-    </ErrorBoundary>
+    <HashRouter>
+      <AppWrapper user={user} loading={loading} />
+    </HashRouter>
   );
 }
 

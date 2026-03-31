@@ -1,5 +1,4 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { AlertTriangle, RefreshCcw } from 'lucide-react';
 
 interface Props {
   children: ReactNode;
@@ -10,6 +9,11 @@ interface State {
   error: Error | null;
 }
 
+/**
+ * Standard Error Boundary to catch runtime errors.
+ * Re-written to be dependency-free (no lucide-react) for maximum stability
+ * even when the application bundle fails to load partially.
+ */
 export class ErrorBoundary extends Component<Props, State> {
   public state: State = {
     hasError: false,
@@ -32,35 +36,82 @@ export class ErrorBoundary extends Component<Props, State> {
   public render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4 font-sans">
-          <div className="bg-white rounded-2xl shadow-xl border border-red-100 p-8 max-w-lg w-full text-center">
-            <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
-              <AlertTriangle className="w-8 h-8" />
-            </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Ops! Algo deu errado</h1>
-            <p className="text-gray-600 mb-8">
+        <div style={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: '#f9fafb',
+          padding: '1rem',
+          fontFamily: 'sans-serif'
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '1rem',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+            border: '1px solid #fee2e2',
+            padding: '2rem',
+            maxWidth: '32rem',
+            width: '100%',
+            textAlign: 'center'
+          }}>
+            <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827', marginBottom: '0.5rem' }}>
+              Ops! Algo deu errado
+            </h1>
+            <p style={{ color: '#4b5563', marginBottom: '2rem' }}>
               Ocorreu um erro inesperado que impediu o carregamento da página. Tente recarregar ou voltar para o início.
             </p>
 
             {this.state.error && (
-              <div className="bg-red-50 rounded-lg p-4 mb-8 text-left overflow-auto max-h-40">
-                <p className="text-xs font-mono text-red-800 break-words">
+              <div style={{
+                backgroundColor: '#fef2f2',
+                borderRadius: '0.5rem',
+                padding: '1rem',
+                marginBottom: '2rem',
+                textAlign: 'left',
+                overflow: 'auto',
+                maxHeight: '10rem'
+              }}>
+                <p style={{ fontSize: '0.75rem', fontFamily: 'monospace', color: '#991b1b', wordBreak: 'break-all' }}>
                   {this.state.error.toString()}
                 </p>
               </div>
             )}
 
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', justifyContent: 'center' }}>
               <button
                 onClick={() => window.location.reload()}
-                className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-6 rounded-lg transition-colors"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.5rem',
+                  backgroundColor: '#2563eb',
+                  color: 'white',
+                  fontWeight: '500',
+                  padding: '0.625rem 1.5rem',
+                  borderRadius: '0.5rem',
+                  border: 'none',
+                  cursor: 'pointer'
+                }}
               >
-                <RefreshCcw className="w-4 h-4" />
                 Recarregar Página
               </button>
               <button
                 onClick={this.handleReset}
-                className="flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2.5 px-6 rounded-lg transition-colors"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.5rem',
+                  backgroundColor: '#f3f4f6',
+                  color: '#374151',
+                  fontWeight: '500',
+                  padding: '0.625rem 1.5rem',
+                  borderRadius: '0.5rem',
+                  border: 'none',
+                  cursor: 'pointer'
+                }}
               >
                 Ir para o Início
               </button>

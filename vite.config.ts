@@ -15,16 +15,7 @@ export default defineConfig(({mode}) => {
         configureServer(server) {
           server.middlewares.use((req, res, next) => {
             if (req.url) {
-              // 1. Handle proxy subpaths by stripping potential prefixes
-              // We look for common Vite/Source patterns and strip everything before them
-              const match = req.url.match(/(\/src\/|(\/@.*)|\/node_modules\/)/);
-              if (match && match.index !== undefined && match.index > 0) {
-                const newUrl = req.url.substring(match.index);
-                console.log(`[Proxy Fix] Redirecting ${req.url} -> ${newUrl}`);
-                req.url = newUrl;
-              }
-
-              // 2. Force correct MIME type for scripts
+              // 1. Force correct MIME type for scripts
               const cleanUrl = req.url.split('?')[0];
               if (
                 cleanUrl.endsWith('.ts') ||
@@ -34,7 +25,16 @@ export default defineConfig(({mode}) => {
                 cleanUrl.includes('/@vite/') ||
                 cleanUrl.includes('/node_modules/.vite/')
               ) {
-                res.setHeader('Content-Type', 'text/javascript');
+                res.setHeader('Content-Type', 'application/javascript');
+              }
+
+              // 2. Handle proxy subpaths by stripping potential prefixes
+              // We look for common Vite/Source patterns and strip everything before them
+              const match = req.url.match(/(\/src\/|(\/@.*)|\/node_modules\/)/);
+              if (match && match.index !== undefined && match.index > 0) {
+                const newUrl = req.url.substring(match.index);
+                console.log(`[Proxy Fix] Redirecting ${req.url} -> ${newUrl}`);
+                req.url = newUrl;
               }
             }
             next();
