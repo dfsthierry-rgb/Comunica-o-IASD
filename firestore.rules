@@ -1,0 +1,81 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: presentations
+    // Document ID: {presentationId}
+    // Fields:
+    //   - id: string (required)
+    //   - title: string (required)
+    //   - createdAt: string (required, immutable)
+    //   - status: string (required, 'draft' or 'published')
+    //   - authorUid: string (required, immutable)
+    //   - announcements: list (required)
+    //   - script: string (optional)
+    //   - designerNotes: list (optional)
+    //
+    // ===============================================================
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.authorUid;
+    }
+
+    function uidUnchanged() {
+      return !('authorUid' in request.resource.data) || request.resource.data.authorUid == request.auth.uid;
+    }
+
+    function uidNotModified() {
+      return !('authorUid' in request.resource.data) || request.resource.data.authorUid == resource.data.authorUid;
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+    
+    function isValidStatus() {
+      return request.resource.data.status in ['draft', 'published'];
+    }
+
+    function isValidPresentation() {
+      return hasRequiredFields(['id', 'title', 'createdAt', 'status', 'authorUid', 'announcements']) &&
+             request.resource.data.id is string &&
+             request.resource.data.title is string &&
+             request.resource.data.title.size() <= 200 &&
+             request.resource.data.createdAt is string &&
+             isValidStatus() &&
+             request.resource.data.authorUid is string &&
+             request.resource.data.announcements is list &&
+             (!('script' in request.resource.data) || request.resource.data.script is string) &&
+             (!('designerNotes' in request.resource.data) || request.resource.data.designerNotes is list);
+    }
+
+    match /presentations/{presentationId} {
+      // Anyone can read if it's published. Owner can read everything.
+      allow read: if (resource == null) || (resource.data.status == 'published') || (isAuthenticated() && request.auth.uid == resource.data.authorUid);
+      
+      // Only authenticated users can create, and they must set themselves as author
+      allow create: if isAuthenticated() && 
+                    isValidPresentation() && 
+                    uidUnchanged();
+                    
+      // Only owner can update, and they cannot change the authorUid
+      allow update: if isOwner() && 
+                    isValidPresentation() && 
+                    uidNotModified() &&
+                    request.resource.data.createdAt == resource.data.createdAt;
+                    
+      // Only owner can delete
+      allow delete: if isOwner();
+    }
+  }
+}

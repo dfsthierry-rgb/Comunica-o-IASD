@@ -1,0 +1,85 @@
+{
+  "entities": {
+    "AnnouncementImage": {
+      "title": "AnnouncementImage",
+      "description": "Image attached to an announcement",
+      "type": "object",
+      "properties": {
+        "data": { "type": "string" },
+        "mimeType": { "type": "string" },
+        "previewUrl": { "type": "string" },
+        "name": { "type": "string" }
+      },
+      "required": ["data", "mimeType", "previewUrl", "name"]
+    },
+    "Announcement": {
+      "title": "Announcement",
+      "description": "A single announcement",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "section": { "type": "string" },
+        "description": { "type": "string" },
+        "date": { "type": "string" },
+        "time": { "type": "string" },
+        "location": { "type": "string" },
+        "people": { "type": "string" },
+        "expiration": { "type": "string" },
+        "supportMaterial": { "type": "string" },
+        "referenceLink": { "type": "string" },
+        "image": { "$ref": "#/entities/AnnouncementImage" }
+      },
+      "required": ["id", "title", "section", "description", "date", "time", "location", "people", "expiration", "supportMaterial", "referenceLink"]
+    },
+    "DesignerNote": {
+      "title": "DesignerNote",
+      "description": "AI generated note for designers",
+      "type": "object",
+      "properties": {
+        "announcementId": { "type": "string" },
+        "slideTitle": { "type": "string" },
+        "slideText": { "type": "string" },
+        "imageSuggestion": { "type": "string" },
+        "designSuggestions": {
+          "type": "object",
+          "properties": {
+            "colors": { "type": "string" },
+            "fonts": { "type": "string" },
+            "layout": { "type": "string" }
+          },
+          "required": ["colors", "fonts", "layout"]
+        }
+      },
+      "required": ["announcementId", "slideTitle", "slideText", "imageSuggestion", "designSuggestions"]
+    },
+    "Presentation": {
+      "title": "Presentation",
+      "description": "A complete presentation with announcements, script, and designer notes",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "status": { "type": "string", "enum": ["draft", "published"] },
+        "authorUid": { "type": "string" },
+        "announcements": {
+          "type": "array",
+          "items": { "$ref": "#/entities/Announcement" }
+        },
+        "script": { "type": "string" },
+        "designerNotes": {
+          "type": "array",
+          "items": { "$ref": "#/entities/DesignerNote" }
+        }
+      },
+      "required": ["id", "title", "createdAt", "status", "authorUid", "announcements"]
+    }
+  },
+  "firestore": {
+    "/presentations/{presentationId}": {
+      "schema": "#/entities/Presentation",
+      "description": "Stores the presentations"
+    }
+  }
+}
