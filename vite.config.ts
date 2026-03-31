@@ -10,6 +10,18 @@ export default defineConfig(({mode}) => {
     plugins: [
       react(),
       tailwindcss(),
+      {
+        name: 'fix-mime-types',
+        configureServer(server) {
+          server.middlewares.use((req, res, next) => {
+            const url = req.url?.split('?')[0] || '';
+            if (url.endsWith('.ts') || url.endsWith('.tsx') || url.endsWith('.js') || url.endsWith('.jsx')) {
+              res.setHeader('Content-Type', 'application/javascript');
+            }
+            next();
+          });
+        },
+      }
     ],
     define: {
       'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
