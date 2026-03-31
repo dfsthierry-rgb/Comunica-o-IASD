@@ -7,41 +7,7 @@ export default defineConfig(({mode}) => {
   const env = loadEnv(mode, '.', '');
   return {
     base: './',
-    plugins: [
-      react(),
-      tailwindcss(),
-      {
-        name: 'fix-mime-types-and-paths',
-        configureServer(server) {
-          server.middlewares.use((req, res, next) => {
-            if (req.url) {
-              // 1. Force correct MIME type for scripts
-              const cleanUrl = req.url.split('?')[0];
-              if (
-                cleanUrl.endsWith('.ts') ||
-                cleanUrl.endsWith('.tsx') ||
-                cleanUrl.endsWith('.js') ||
-                cleanUrl.endsWith('.jsx') ||
-                cleanUrl.includes('/@vite/') ||
-                cleanUrl.includes('/node_modules/.vite/')
-              ) {
-                res.setHeader('Content-Type', 'application/javascript');
-              }
-
-              // 2. Handle proxy subpaths by stripping potential prefixes
-              // We look for common Vite/Source patterns and strip everything before them
-              const match = req.url.match(/(\/src\/|(\/@.*)|\/node_modules\/)/);
-              if (match && match.index !== undefined && match.index > 0) {
-                const newUrl = req.url.substring(match.index);
-                console.log(`[Proxy Fix] Redirecting ${req.url} -> ${newUrl}`);
-                req.url = newUrl;
-              }
-            }
-            next();
-          });
-        },
-      }
-    ],
+    plugins: [react(), tailwindcss()],
     define: {
       'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
     },
