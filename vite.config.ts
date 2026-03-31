@@ -6,6 +6,7 @@ import {defineConfig, loadEnv} from 'vite';
 export default defineConfig(({mode}) => {
   const env = loadEnv(mode, '.', '');
   return {
+    base: './',
     plugins: [
       react(),
       tailwindcss(),
@@ -13,7 +14,8 @@ export default defineConfig(({mode}) => {
         name: 'fix-mime-types',
         configureServer(server) {
           server.middlewares.use((req, res, next) => {
-            if (req.url && (req.url.endsWith('.ts') || req.url.endsWith('.tsx'))) {
+            const url = req.url?.split('?')[0];
+            if (url && (url.endsWith('.ts') || url.endsWith('.tsx'))) {
               res.setHeader('Content-Type', 'text/javascript');
             }
             next();
