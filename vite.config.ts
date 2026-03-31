@@ -15,18 +15,26 @@ export default defineConfig(({mode}) => {
         configureServer(server) {
           server.middlewares.use((req, res, next) => {
             if (req.url) {
-              // 1. Force correct MIME type for scripts
-              const url = req.url.split('?')[0];
-              if (url.endsWith('.ts') || url.endsWith('.tsx') || url.endsWith('.js') || url.endsWith('.jsx')) {
-                res.setHeader('Content-Type', 'application/javascript');
+              // 1. Handle proxy subpaths by stripping potential prefixes
+              // We look for common Vite/Source patterns and strip everything before them
+              const match = req.url.match(/(\/src\/|(\/@.*)|\/node_modules\/)/);
+              if (match && match.index !== undefined && match.index > 0) {
+                const newUrl = req.url.substring(match.index);
+                console.log(`[Proxy Fix] Redirecting ${req.url} -> ${newUrl}`);
+                req.url = newUrl;
               }
 
-              // 2. Handle proxy subpaths by stripping potential prefixes
-              if (req.url.includes('/src/') || req.url.includes('/node_modules/') || req.url.startsWith('/@')) {
-                const matches = req.url.match(/(\/src\/|\/node_modules\/|(\/@.*))/);
-                if (matches && matches[0]) {
-                  req.url = req.url.substring(req.url.indexOf(matches[0]));
-                }
+              // 2. Force correct MIME type for scripts
+              const cleanUrl = req.url.split('?')[0];
+              if (
+                cleanUrl.endsWith('.ts') ||
+                cleanUrl.endsWith('.tsx') ||
+                cleanUrl.endsWith('.js') ||
+                cleanUrl.endsWith('.jsx') ||
+                cleanUrl.includes('/@vite/') ||
+                cleanUrl.includes('/node_modules/.vite/')
+              ) {
+                res.setHeader('Content-Type', 'text/javascript');
               }
             }
             next();
@@ -43,6 +51,8 @@ export default defineConfig(({mode}) => {
       },
     },
     server: {
+      host: true,
+      port: 3000,
       // HMR is disabled in AI Studio via DISABLE_HMR env var.
       // Do not modifyâfile watching is disabled to prevent flickering during agent edits.
       hmr: process.env.DISABLE_HMR !== 'true',
