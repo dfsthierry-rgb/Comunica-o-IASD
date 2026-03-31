@@ -13,18 +13,34 @@ export function SharedView() {
   const [presentation, setPresentation] = useState<Presentation | null>(null);
   const [activeTab, setActiveTab] = useState<'script' | 'design'>('script');
   const [isDownloadingZip, setIsDownloadingZip] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadPresentation = async () => {
-      if (id) {
-        const p = await store.getPresentation(id);
-        if (p && p.status === 'published') {
-          setPresentation(p);
+      try {
+        setLoading(true);
+        if (id) {
+          const p = await store.getPresentation(id);
+          if (p && p.status === 'published') {
+            setPresentation(p);
+          }
         }
+      } catch (error) {
+        console.error("Error loading presentation:", error);
+      } finally {
+        setLoading(false);
       }
     };
     loadPresentation();
   }, [id]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   if (!presentation) {
     return (
