@@ -62,24 +62,11 @@ export default function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Definitive timeout: force loading to false if Firebase hangs
-    const timer = setTimeout(() => {
-      if (loading) {
-        console.warn('Auth timeout reached, assuming not logged in');
-        setLoading(false);
-      }
-    }, 3000);
-
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      clearTimeout(timer);
       setUser(currentUser);
       setLoading(false);
     });
-
-    return () => {
-      clearTimeout(timer);
-      unsubscribe();
-    };
+    return () => unsubscribe();
   }, []);
 
   return (
@@ -93,7 +80,6 @@ function AppWrapper({ user, loading }: { user: User | null, loading: boolean }) 
   const location = useLocation();
   const isSharedView = location.pathname.startsWith('/shared/');
 
-  // If we are in shared view, never show the global spinner
   if (loading && !isSharedView) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">

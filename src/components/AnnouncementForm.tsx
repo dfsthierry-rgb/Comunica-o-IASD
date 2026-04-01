@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Announcement, Section, AnnouncementImage } from '../types';
 import { PlusCircle, Image as ImageIcon, X, Save, XCircle } from 'lucide-react';
-import { generateUUID } from '../lib/utils';
 
 interface Props {
   onAdd: (announcement: Announcement) => void;
@@ -48,7 +47,7 @@ export function AnnouncementForm({ onAdd, onUpdate, editingAnnouncement, onCance
     } else {
       onAdd({
         ...formData,
-        id: generateUUID(),
+        id: crypto.randomUUID(),
       });
     }
 

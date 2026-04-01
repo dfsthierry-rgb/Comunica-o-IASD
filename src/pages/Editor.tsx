@@ -8,7 +8,8 @@ import { store } from '../lib/store';
 import { Loader2, CheckCircle2, ArrowLeft, Share2, AlertTriangle, Archive, Copy, Check } from 'lucide-react';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
-import html2pdf from 'html2pdf.js';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 import Markdown from 'react-markdown';
 
 export function Editor() {
@@ -262,33 +263,47 @@ export function Editor() {
         wrapper.appendChild(clone);
         document.body.appendChild(wrapper);
         
-        const opt = {
-          margin:       10,
-          filename:     'apresentacao.pdf',
-          image:        { type: 'jpeg', quality: 0.98 },
-          html2canvas:  { scale: 2, useCORS: true, windowWidth: document.documentElement.offsetWidth },
-          jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        };
-        
         try {
-          // Use explicit Promise to ensure await works correctly with html2pdf's custom thenable
-          const pdfBlob = await new Promise<Blob>((resolve, reject) => {
-            // @ts-ignore
-            const generatorFn = typeof html2pdf === 'function' ? html2pdf : (html2pdf && typeof html2pdf.default === 'function' ? html2pdf.default : null);
-            
-            if (!generatorFn) {
-              reject(new Error("html2pdf library not loaded correctly"));
-              return;
-            }
-            
-            generatorFn()
-              .set(opt)
-              .from(clone)
-              .output('blob')
-              .then((blob: Blob) => resolve(blob))
-              .catch(reject);
+          // Use html2canvas and jsPDF directly for better reliability
+          const canvas = await html2canvas(clone, {
+            scale: 2,
+            useCORS: true,
+            windowWidth: document.documentElement.offsetWidth,
+            logging: false
           });
           
+          const imgData = canvas.toDataURL('image/jpeg', 0.98);
+          
+          // A4 dimensions in mm
+          const pdfWidth = 210;
+          const pdfHeight = 297;
+          
+          const pdf = new jsPDF({
+            orientation: 'portrait',
+            unit: 'mm',
+            format: 'a4'
+          });
+          
+          const imgProps = pdf.getImageProperties(imgData);
+          const imgWidth = pdfWidth;
+          const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
+          
+          let heightLeft = imgHeight;
+          let position = 0;
+          
+          // Add first page
+          pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+          heightLeft -= pdfHeight;
+          
+          // Add subsequent pages if content is longer than one page
+          while (heightLeft >= 0) {
+            position = heightLeft - imgHeight;
+            pdf.addPage();
+            pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+            heightLeft -= pdfHeight;
+          }
+          
+          const pdfBlob = pdf.output('blob');
           rootFolder.file("apresentacao_completa.pdf", pdfBlob);
         } catch (err) {
           console.error("Error generating PDF for ZIP:", err);
